@@ -38,7 +38,7 @@ public class TokenService {
                     .withExpiresAt(accessTokenExpiration())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error while generating JWT access token", exception);
+            throw new RuntimeException("Erro ao gerar token JWT de acesso", exception);
         }
     }
 
@@ -54,7 +54,7 @@ public class TokenService {
                     .withExpiresAt(refreshTokenExpiration())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error while generating refresh token", exception);
+            throw new RuntimeException("Erro ao gerar refresh token", exception);
         }
     }
 
@@ -84,7 +84,7 @@ public class TokenService {
                     .getClaim("id")
                     .asString();
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Invalid or expired JWT token.");
+            throw new RuntimeException("Token JWT inválido ou expirado.");
         }
     }
 
@@ -108,7 +108,7 @@ public class TokenService {
                     .verify(tokenJwt)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Invalid or expired JWT token.");
+            throw new RuntimeException("Token JWT inválido ou expirado.");
         }
     }
 

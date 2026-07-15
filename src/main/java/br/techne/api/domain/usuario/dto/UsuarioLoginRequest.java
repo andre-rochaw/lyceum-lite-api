@@ -3,7 +3,7 @@ package br.techne.api.domain.usuario.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record UsuarioLoginRequest(
-        @NotBlank String login,
-        @NotBlank String password
+        @NotBlank(message = "Login é obrigatório.") String login,
+        @NotBlank(message = "Senha é obrigatória.") String password
 ) {
 }

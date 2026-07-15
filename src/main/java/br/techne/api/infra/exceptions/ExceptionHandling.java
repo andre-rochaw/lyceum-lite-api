@@ -15,92 +15,117 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
 import java.sql.SQLException;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 @RestControllerAdvice
 public class ExceptionHandling {
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleResourceNotFound(ResourceNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, messageOrDefault(ex, "Recurso não encontrado."));
+    }
+
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Void> handleEntityNotFoundException() {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ApiError> handleEntityNotFound(EntityNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, messageOrDefault(ex, "Recurso não encontrado."));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, messageOrDefault(ex, "Requisição inválida."));
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiError> handleValidationException(ValidationException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, messageOrDefault(ex, "Dados inválidos."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<List<String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        List<String> errors = ex.getBindingResult()
+    public ResponseEntity<ApiError> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(error -> String.format("Field '%s': %s", error.getField(), error.getDefaultMessage()))
-                .toList();
-        return ResponseEntity.badRequest().body(errors);
+                .findFirst()
+                .map(error -> error.getDefaultMessage())
+                .orElse("Dados inválidos.");
+        return buildResponse(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiError> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         if (ex.getCause() instanceof InvalidFormatException invalidFormatException
                 && invalidFormatException.getTargetType().equals(java.time.LocalDate.class)) {
-            return ResponseEntity.badRequest().body("Date format is wrong. Use YYYY-MM-DD.");
+            return buildResponse(HttpStatus.BAD_REQUEST, "Formato de data inválido. Use YYYY-MM-DD.");
         }
-        return ResponseEntity.badRequest().body(ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, messageOrDefault(ex, "Corpo da requisição inválido."));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<String> handleBadCredentialsException() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials.");
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, messageOrDefault(ex, "Credenciais inválidas."));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> handleAccessDeniedException() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, messageOrDefault(ex, "Acesso negado."));
     }
 
     @ExceptionHandler(LockedException.class)
-    public ResponseEntity<String> handleLockedException() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account locked.");
+    public ResponseEntity<ApiError> handleLocked(LockedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, messageOrDefault(ex, "Conta bloqueada."));
+    }
+
+    @ExceptionHandler(InternalAuthenticationServiceException.class)
+    public ResponseEntity<ApiError> handleInternalAuthentication(InternalAuthenticationServiceException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, messageOrDefault(ex, "Login ou senha incorretos."));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    public ResponseEntity<ApiError> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         Throwable rootCause = ex.getRootCause();
         if (rootCause instanceof SQLException sqlEx) {
             String errorMessage = sqlEx.getMessage() != null ? sqlEx.getMessage().toLowerCase() : "";
             if (errorMessage.contains("login")) {
-                return ResponseEntity.badRequest().body("Login already exists.");
+                return buildResponse(HttpStatus.BAD_REQUEST, "Login já existe.");
             }
             if (errorMessage.contains("nome_usuario")) {
-                return ResponseEntity.badRequest().body("Username already exists.");
+                return buildResponse(HttpStatus.BAD_REQUEST, "Nome de usuário já existe.");
             }
             if (errorMessage.contains("cpf")) {
-                return ResponseEntity.badRequest().body("CPF already exists.");
+                return buildResponse(HttpStatus.BAD_REQUEST, "CPF já cadastrado.");
+            }
+            if (errorMessage.contains("email")) {
+                return buildResponse(HttpStatus.BAD_REQUEST, "E-mail já cadastrado.");
             }
         }
-        return ResponseEntity.badRequest().body("Data integrity violation error.");
-    }
-
-    @ExceptionHandler(InternalAuthenticationServiceException.class)
-    public ResponseEntity<String> handleInternalAuthenticationServiceException() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect login or password.");
-    }
-
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String> handleValidationException(ValidationException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Erro de integridade dos dados.");
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Internal Server Error: " + ex.getMessage());
+    public ResponseEntity<ApiError> handleRuntimeException(RuntimeException ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, messageOrDefault(ex, "Erro interno do servidor."));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error: " + ex.getLocalizedMessage());
+    public ResponseEntity<ApiError> handleException(Exception ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno do servidor.");
+    }
+
+    private String messageOrDefault(Throwable ex, String defaultMessage) {
+        String message = ex.getMessage();
+        if (message == null || message.isBlank()) {
+            return defaultMessage;
+        }
+        return message;
+    }
+
+    private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message) {
+        ApiError body = new ApiError(
+                LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS),
+                status.value(),
+                message
+        );
+        return ResponseEntity.status(status).body(body);
     }
 }
