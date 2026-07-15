@@ -1,9 +1,9 @@
 package br.techne.api.controller;
 
-import br.techne.api.domain.aluno.dto.AlunoResponse;
-import br.techne.api.domain.aluno.dto.CreateAlunoRequest;
-import br.techne.api.domain.aluno.dto.UpdateAlunoRequest;
-import br.techne.api.service.AlunoService;
+import br.techne.api.domain.curso.dto.CreateCursoRequest;
+import br.techne.api.domain.curso.dto.CursoResponse;
+import br.techne.api.domain.curso.dto.UpdateCursoRequest;
+import br.techne.api.service.CursoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,37 +23,37 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/alunos")
-public class AlunoController {
+@RequestMapping("/cursos")
+public class CursoController {
 
     @Autowired
-    private AlunoService alunoService;
+    private CursoService cursoService;
 
     @GetMapping
-    public ResponseEntity<Page<AlunoResponse>> listar(
+    public ResponseEntity<Page<CursoResponse>> listar(
             @PageableDefault(sort = "nome") Pageable pageable) {
-        return ResponseEntity.ok(alunoService.listar(pageable));
+        return ResponseEntity.ok(cursoService.listar(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AlunoResponse> buscarPorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(alunoService.buscarPorId(id));
+    public ResponseEntity<CursoResponse> buscarPorId(@PathVariable UUID id) {
+        return ResponseEntity.ok(cursoService.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<AlunoResponse> criar(@RequestBody @Valid CreateAlunoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(alunoService.criar(request));
+    public ResponseEntity<CursoResponse> criar(@RequestBody @Valid CreateCursoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cursoService.criar(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AlunoResponse> editar(@PathVariable UUID id,
-                                                @RequestBody @Valid UpdateAlunoRequest request) {
-        return ResponseEntity.ok(alunoService.editar(id, request));
+    public ResponseEntity<CursoResponse> editar(@PathVariable UUID id,
+                                                @RequestBody @Valid UpdateCursoRequest request) {
+        return ResponseEntity.ok(cursoService.editar(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        alunoService.excluir(id);
+        cursoService.excluir(id);
         return ResponseEntity.noContent().build();
     }
 }

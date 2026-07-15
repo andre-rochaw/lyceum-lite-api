@@ -1,0 +1,7 @@
+CREATE TABLE cursos (
+    id UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    descricao VARCHAR(500) NULL,
+    created_at DATETIME2 NOT NULL,
+    updated_at DATETIME2 NOT NULL
+);
