@@ -1,0 +1,20 @@
+CREATE TABLE usuario (
+    id UNIQUEIDENTIFIER PRIMARY KEY,
+    login VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    nome_usuario VARCHAR(20) NULL UNIQUE,
+    nome VARCHAR(100) NULL,
+    cpf VARCHAR(14) NULL UNIQUE,
+    perfil VARCHAR(100) NOT NULL,
+    telefone VARCHAR(14) NULL,
+    data_nascimento DATE NULL,
+    token_expiracao DATETIME2 NULL,
+    token_email VARCHAR(255) NULL,
+    tentativas_falhas INT NOT NULL DEFAULT 0,
+    bloqueado BIT NOT NULL DEFAULT 0,
+    bloqueio_fim DATETIME2 NULL,
+    dois_fatores BIT NOT NULL DEFAULT 0,
+    refresh_token_ativo BIT NOT NULL DEFAULT 0,
+    criado_em DATETIME2 NULL,
+    atualizado_em DATETIME2 NULL
+);
