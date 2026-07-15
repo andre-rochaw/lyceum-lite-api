@@ -5,7 +5,7 @@ import br.techne.api.domain.usuario.UsuarioRepository;
 import br.techne.api.domain.usuario.dto.CriarUsuarioRequest;
 import br.techne.api.domain.usuario.dto.UsuarioLoginRequest;
 import br.techne.api.domain.usuario.dto.UsuarioResponse;
-import br.techne.api.infra.exceptions.ValidationException;
+import br.techne.api.infra.exceptions.ResourceNotFoundException;
 import br.techne.api.infra.security.AuthTokensDTO;
 import br.techne.api.infra.security.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponse criar(CriarUsuarioRequest request) {
         if (usuarioRepository.existsByLogin(request.login())) {
-            throw new ValidationException("Login already exists.");
+            throw new IllegalArgumentException("Login já existe.");
         }
 
         Usuario usuario = new Usuario(request);
@@ -77,7 +77,7 @@ public class UsuarioService {
                 usuario.registerFailedLogin(MAX_ATTEMPTS, LOCK_MINUTES);
                 usuarioRepository.save(usuario);
             }
-            throw new BadCredentialsException("Wrong login or password.");
+            throw new BadCredentialsException("Login ou senha incorretos.");
         }
     }
 
@@ -86,7 +86,7 @@ public class UsuarioService {
         String usuarioId = tokenService.getIdClaim(tokenJwt);
         UUID uuid = UUID.fromString(usuarioId);
         Usuario usuario = usuarioRepository.findById(uuid)
-                .orElseThrow(() -> new ValidationException("Usuario not found for the provided token."));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para o token informado."));
         return new UsuarioResponse(usuario);
     }
 }

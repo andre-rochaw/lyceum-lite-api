@@ -20,7 +20,7 @@ public class AuthenticateService implements UserDetailsService {
             userDetails = usuarioRepository.findByUsername(username);
         }
         if (userDetails == null) {
-            throw new UsernameNotFoundException("Usuario not found: " + username);
+            throw new UsernameNotFoundException("Usuário não encontrado: " + username);
         }
         return userDetails;
     }
