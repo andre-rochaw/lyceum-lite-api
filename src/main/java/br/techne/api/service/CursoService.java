@@ -21,9 +21,14 @@ public class CursoService {
     private CursoRepository cursoRepository;
 
     @Transactional(readOnly = true)
-    public Page<CursoResponse> listar(Pageable pageable) {
-        return cursoRepository.findAll(pageable)
-                .map(CursoResponse::new);
+    public Page<CursoResponse> listar(String nome, Pageable pageable) {
+        Page<Curso> page;
+        if (nome != null && !nome.isBlank()) {
+            page = cursoRepository.findByNomeContainingIgnoreCaseAndAccent(nome.trim(), pageable);
+        } else {
+            page = cursoRepository.findAll(pageable);
+        }
+        return page.map(CursoResponse::new);
     }
 
     @Transactional(readOnly = true)
@@ -33,8 +38,11 @@ public class CursoService {
 
     @Transactional
     public CursoResponse criar(CreateCursoRequest request) {
+        String nome = request.nome().trim();
+        validarNomeUnico(nome);
+
         Curso curso = new Curso(
-                request.nome().trim(),
+                nome,
                 normalizarDescricao(request.descricao())
         );
         return new CursoResponse(cursoRepository.save(curso));
@@ -43,8 +51,14 @@ public class CursoService {
     @Transactional
     public CursoResponse editar(UUID id, UpdateCursoRequest request) {
         Curso curso = buscarCursoOuFalhar(id);
+        String nome = request.nome().trim();
+
+        if (!curso.getNome().equalsIgnoreCase(nome)) {
+            validarNomeUnico(nome);
+        }
+
         curso.atualizar(
-                request.nome().trim(),
+                nome,
                 normalizarDescricao(request.descricao())
         );
         return new CursoResponse(cursoRepository.saveAndFlush(curso));
@@ -59,6 +73,12 @@ public class CursoService {
     private Curso buscarCursoOuFalhar(UUID id) {
         return cursoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado."));
+    }
+
+    private void validarNomeUnico(String nome) {
+        if (cursoRepository.existsByNomeIgnoreCase(nome)) {
+            throw new IllegalArgumentException("Nome ja cadastrado.");
+        }
     }
 
     private String normalizarDescricao(String descricao) {

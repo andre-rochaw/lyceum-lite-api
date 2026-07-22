@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -31,8 +32,9 @@ public class CursoController {
 
     @GetMapping
     public ResponseEntity<Page<CursoResponse>> listar(
+            @RequestParam(required = false) String nome,
             @PageableDefault(sort = "nome") Pageable pageable) {
-        return ResponseEntity.ok(cursoService.listar(pageable));
+        return ResponseEntity.ok(cursoService.listar(nome, pageable));
     }
 
     @GetMapping("/{id}")

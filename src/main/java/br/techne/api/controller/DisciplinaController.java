@@ -1,9 +1,9 @@
 package br.techne.api.controller;
 
-import br.techne.api.domain.aluno.dto.AlunoResponse;
-import br.techne.api.domain.aluno.dto.CreateAlunoRequest;
-import br.techne.api.domain.aluno.dto.UpdateAlunoRequest;
-import br.techne.api.service.AlunoService;
+import br.techne.api.domain.disciplina.dto.CreateDisciplinaRequest;
+import br.techne.api.domain.disciplina.dto.DisciplinaResponse;
+import br.techne.api.domain.disciplina.dto.UpdateDisciplinaRequest;
+import br.techne.api.service.DisciplinaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,38 +24,39 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/alunos")
-public class AlunoController {
+@RequestMapping("/disciplinas")
+public class DisciplinaController {
 
     @Autowired
-    private AlunoService alunoService;
+    private DisciplinaService disciplinaService;
 
     @GetMapping
-    public ResponseEntity<Page<AlunoResponse>> listar(
+    public ResponseEntity<Page<DisciplinaResponse>> listar(
             @RequestParam(required = false) String nome,
+            @RequestParam(required = false) UUID cursoId,
             @PageableDefault(sort = "nome") Pageable pageable) {
-        return ResponseEntity.ok(alunoService.listar(nome, pageable));
+        return ResponseEntity.ok(disciplinaService.listar(nome, cursoId, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AlunoResponse> buscarPorId(@PathVariable UUID id) {
-        return ResponseEntity.ok(alunoService.buscarPorId(id));
+    public ResponseEntity<DisciplinaResponse> buscarPorId(@PathVariable UUID id) {
+        return ResponseEntity.ok(disciplinaService.buscarPorId(id));
     }
 
     @PostMapping
-    public ResponseEntity<AlunoResponse> criar(@RequestBody @Valid CreateAlunoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(alunoService.criar(request));
+    public ResponseEntity<DisciplinaResponse> criar(@RequestBody @Valid CreateDisciplinaRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(disciplinaService.criar(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AlunoResponse> editar(@PathVariable UUID id,
-                                                @RequestBody @Valid UpdateAlunoRequest request) {
-        return ResponseEntity.ok(alunoService.editar(id, request));
+    public ResponseEntity<DisciplinaResponse> editar(@PathVariable UUID id,
+                                                     @RequestBody @Valid UpdateDisciplinaRequest request) {
+        return ResponseEntity.ok(disciplinaService.editar(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable UUID id) {
-        alunoService.excluir(id);
+        disciplinaService.excluir(id);
         return ResponseEntity.noContent().build();
     }
 }
