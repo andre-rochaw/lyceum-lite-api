@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumSet;
 import java.util.UUID;
 
 @Service
@@ -52,11 +53,19 @@ public class MatriculaService {
         Turma turma = buscarTurmaOuFalhar(request.turmaId());
 
         if (turma.getStatus() != StatusTurma.ABERTA) {
-            throw new ConflictException("Matricula permitida apenas em turma ABERTA.");
+            throw new ConflictException(
+                    "Matricula permitida apenas em turma " + StatusTurma.ABERTA.getDescricao() + ".");
         }
 
-        if (matriculaRepository.existsByAlunoIdAndTurmaId(aluno.getId(), turma.getId())) {
-            throw new ConflictException("Aluno ja possui matricula nesta turma.");
+        boolean possuiMatriculaAtiva = matriculaRepository
+                .findFirstByAlunoIdAndTurmaIdAndStatusIn(
+                        aluno.getId(),
+                        turma.getId(),
+                        EnumSet.of(StatusMatricula.PENDENTE, StatusMatricula.CONFIRMADA))
+                .isPresent();
+
+        if (possuiMatriculaAtiva) {
+            throw new ConflictException("Aluno ja possui matricula ativa nesta turma.");
         }
 
         Matricula matricula = new Matricula(aluno, turma);
@@ -68,7 +77,8 @@ public class MatriculaService {
         Matricula matricula = buscarMatriculaOuFalhar(id);
 
         if (matricula.getStatus() != StatusMatricula.PENDENTE) {
-            throw new ConflictException("Somente matricula PENDENTE pode ser confirmada.");
+            throw new ConflictException(
+                    "Somente matricula " + StatusMatricula.PENDENTE.getDescricao() + " pode ser confirmada.");
         }
 
         Turma turma = matricula.getTurma();
@@ -91,7 +101,8 @@ public class MatriculaService {
         StatusMatricula statusAtual = matricula.getStatus();
 
         if (statusAtual == StatusMatricula.CANCELADA) {
-            throw new ConflictException("Matricula ja esta CANCELADA.");
+            throw new ConflictException(
+                    "Matricula ja esta " + StatusMatricula.CANCELADA.getDescricao() + ".");
         }
 
         if (statusAtual == StatusMatricula.CONFIRMADA) {
