@@ -31,6 +31,11 @@ public class ExceptionHandling {
         return buildResponse(HttpStatus.NOT_FOUND, messageOrDefault(ex, "Recurso não encontrado."));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> handleConflict(ConflictException ex) {
+        return buildResponse(HttpStatus.CONFLICT, messageOrDefault(ex, "Conflito de regra de negocio."));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, messageOrDefault(ex, "Requisição inválida."));

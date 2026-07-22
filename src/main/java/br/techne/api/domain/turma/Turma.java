@@ -95,6 +95,18 @@ public class Turma {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void consumirVaga() {
+        this.vagasOcupadas = this.vagasOcupadas + 1;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void liberarVaga() {
+        if (this.vagasOcupadas > 0) {
+            this.vagasOcupadas = this.vagasOcupadas - 1;
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
