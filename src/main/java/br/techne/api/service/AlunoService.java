@@ -21,9 +21,14 @@ public class AlunoService {
     private AlunoRepository alunoRepository;
 
     @Transactional(readOnly = true)
-    public Page<AlunoResponse> listar(Pageable pageable) {
-        return alunoRepository.findAll(pageable)
-                .map(AlunoResponse::new);
+    public Page<AlunoResponse> listar(String nome, Pageable pageable) {
+        Page<Aluno> page;
+        if (nome != null && !nome.isBlank()) {
+            page = alunoRepository.findByNomeContainingIgnoreCase(nome.trim(), pageable);
+        } else {
+            page = alunoRepository.findAll(pageable);
+        }
+        return page.map(AlunoResponse::new);
     }
 
     @Transactional(readOnly = true)

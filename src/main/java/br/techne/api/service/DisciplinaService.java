@@ -26,9 +26,17 @@ public class DisciplinaService {
     private CursoRepository cursoRepository;
 
     @Transactional(readOnly = true)
-    public Page<DisciplinaResponse> listar(String nome, Pageable pageable) {
+    public Page<DisciplinaResponse> listar(String nome, UUID cursoId, Pageable pageable) {
+        boolean hasNome = nome != null && !nome.isBlank();
+        boolean hasCurso = cursoId != null;
+
         Page<Disciplina> page;
-        if (nome != null && !nome.isBlank()) {
+        if (hasCurso && hasNome) {
+            page = disciplinaRepository.findByCursoIdAndNomeContainingIgnoreCase(
+                    cursoId, nome.trim(), pageable);
+        } else if (hasCurso) {
+            page = disciplinaRepository.findByCursoId(cursoId, pageable);
+        } else if (hasNome) {
             page = disciplinaRepository.findByNomeContainingIgnoreCase(nome.trim(), pageable);
         } else {
             page = disciplinaRepository.findAll(pageable);
@@ -99,7 +107,7 @@ public class DisciplinaService {
 
     private void validarNomeUnico(String nome) {
         if (disciplinaRepository.existsByNomeIgnoreCase(nome)) {
-            throw new IllegalArgumentException("Nome já cadastrado.");
+            throw new IllegalArgumentException("Nome ja cadastrado.");
         }
     }
 

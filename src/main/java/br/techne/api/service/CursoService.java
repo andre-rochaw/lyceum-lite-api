@@ -77,7 +77,7 @@ public class CursoService {
 
     private void validarNomeUnico(String nome) {
         if (cursoRepository.existsByNomeIgnoreCase(nome)) {
-            throw new IllegalArgumentException("Nome já cadastrado.");
+            throw new IllegalArgumentException("Nome ja cadastrado.");
         }
     }
 
